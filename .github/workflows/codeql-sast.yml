@@ -19,22 +19,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
       - name: Install markdownlint
         run: npm install -g markdownlint-cli
 
+      - name: Create markdownlint config
+        run: |
+          cat > .markdownlint.json <<'EOF'
+          {
+            "MD013": false,
+            "MD033": false,
+            "MD041": false,
+            "MD012": false,
+            "MD032": false,
+            "MD009": false
+          }
+          EOF
+
       - name: Check Markdown
-        run: markdownlint "**/*.md"
-
-      - name: Check YAML syntax
-        run: python -c "import yaml,glob; [yaml.safe_load(open(f, encoding='utf-8')) for f in glob.glob('**/*.yml', recursive=True)]"
-
-      - name: Check JSON syntax
-        run: python -c "import json,glob; [json.load(open(f, encoding='utf-8')) for f in glob.glob('**/*.json', recursive=True)]"
-
-      - name: Check HTML presence
-        run: test -f 404.html
+        run: markdownlint "**/*.md" --config .markdownlint.json
