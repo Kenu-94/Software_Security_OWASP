@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  security-events: write
 
 jobs:
   validate:
@@ -19,21 +20,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install markdownlint
-        run: npm install -g markdownlint-cli
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
 
-      - name: Create markdownlint config
-        run: |
-          cat > .markdownlint.json <<'EOF'
-          {
-            "MD013": false,
-            "MD033": false,
-            "MD041": false,
-            "MD012": false,
-            "MD032": false,
-            "MD009": false
-          }
-          EOF
-
-      - name: Check Markdown
-        run: markdownlint "**/*.md" --config .markdownlint.json
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-results.sarif
