@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ["javascript-typescript"]
+        language: ["javascript"]
 
     steps:
       - name: Checkout repository
@@ -29,6 +29,7 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           queries: security-extended
+          source-root: .
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v4
