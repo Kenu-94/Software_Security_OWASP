@@ -24,16 +24,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Show files
+        run: |
+          pwd
+          ls -la
+          find . -maxdepth 3 -type f | head -200
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           queries: security-extended
-          source-root: .
 
-      - name: Build project
+      - name: Build/prepare project
         run: |
-          echo "No build command configured yet"
+          echo "No build command yet; source must be present in this repo"
+          find . -maxdepth 3 -type f | head -200
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
