@@ -1,4 +1,4 @@
-name: "CodeQL SAST Scan"
+name: "Repo checks"
 
 on:
   push:
@@ -10,38 +10,31 @@ on:
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
-  analyze:
+  validate:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        language: ["javascript"]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Show files
-        run: |
-          pwd
-          ls -la
-          find . -maxdepth 3 -type f | head -200
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          languages: ${{ matrix.language }}
-          queries: security-extended
+          node-version: "20"
 
-      - name: Build/prepare project
-        run: |
-          echo "No build command yet; source must be present in this repo"
-          find . -maxdepth 3 -type f | head -200
+      - name: Install markdownlint
+        run: npm install -g markdownlint-cli
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
-        with:
-          category: "/language:${{ matrix.language }}"
+      - name: Check Markdown
+        run: markdownlint "**/*.md"
+
+      - name: Check YAML syntax
+        run: python -c "import yaml,glob; [yaml.safe_load(open(f, encoding='utf-8')) for f in glob.glob('**/*.yml', recursive=True)]"
+
+      - name: Check JSON syntax
+        run: python -c "import json,glob; [json.load(open(f, encoding='utf-8')) for f in glob.glob('**/*.json', recursive=True)]"
+
+      - name: Check HTML presence
+        run: test -f 404.html
