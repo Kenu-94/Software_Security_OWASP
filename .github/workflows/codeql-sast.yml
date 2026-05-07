@@ -31,8 +31,9 @@ jobs:
           queries: security-extended
           source-root: .
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v4
+      - name: Build project
+        run: |
+          echo "No build command configured yet"
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
