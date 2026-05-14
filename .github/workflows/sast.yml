@@ -1,4 +1,4 @@
-name: "Security-Scan"
+name: "CodeQL"
 
 on:
   push:
@@ -9,31 +9,33 @@ on:
     - cron: '30 1 * * 5'
 
 jobs:
-  sast:
-    name: SAST Scan (CodeQL)
+  analyze:
+    name: Analyze
     runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
       security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'ruby' ]
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      # Deze stap is cruciaal om te debuggen waarom CodeQL niets ziet
-      - name: Check directory structure
-        run: ls -R
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        # Dit zorgt voor de meest uitgebreide beveiligingschecks
+        queries: security-extended,security-and-quality
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: javascript-typescript
-          queries: security-extended
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-        with:
-          # Dit zorgt dat de job rood wordt bij gevonden lekken
-          upload: true
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
+        # Forceert dat resultaten direct worden geüpload naar de security monitor
+        upload: true
