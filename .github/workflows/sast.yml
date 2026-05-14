@@ -20,26 +20,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Alleen javascript-typescript behouden om Exit Code 32/Ruby-fouten te voorkomen
+        # Alleen javascript-typescript om de Ruby-fout te voorkomen
         language: [ 'javascript-typescript' ]
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4 # Geüpdatet naar v4 voor stabiliteit
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3 # Geüpdatet naar v3
       with:
         languages: ${{ matrix.language }}
-        # Gebruik de 'security-extended' queries om meer lekken te vinden
+        # Gebruik 'security-extended' om de Juice Shop lekken goed te vangen
         queries: security-extended
 
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
+      uses: github/codeql-action/autobuild@v3 # Geüpdatet naar v3
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3 # Geüpdatet naar v3
       with:
         category: "/language:${{ matrix.language }}"
-        # Deze instelling zorgt ervoor dat de pipeline faalt bij gevonden lekken
+        # Dit zorgt voor de upload naar het security dashboard
         upload: true
