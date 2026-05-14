@@ -1,12 +1,12 @@
-name: "CodeQL Analysis"
+name: "CodeQL"
 
 on:
   push:
-    branches: [ "main", "master", "develop" ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master" ]
   schedule:
-    - cron: '30 18 * * 4' # Elke donderdag om 18:30
+    - cron: '30 1 * * 5'
 
 jobs:
   analyze:
@@ -20,23 +20,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Pas hier de taal aan indien nodig (bijv. javascript-typescript)
-        language: [ 'java' ]
+        # We veranderen dit naar ruby omdat je een Gemfile hebt
+        language: [ 'ruby' ]
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        # Zorgt dat submodules ook worden meegenomen als die er zijn
-        submodules: recursive
 
-    # Initialiseer CodeQL
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v3
+
+    # Voor Ruby is GEEN build-stap (autobuild) nodig. 
+    # CodeQL analyseert de scripts direct.
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
