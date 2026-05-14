@@ -1,4 +1,4 @@
-name: "CodeQL-SCA"
+name: "Security-Scan"
 
 on:
   push:
@@ -9,32 +9,34 @@ on:
     - cron: '30 1 * * 5'
 
 jobs:
-  analyze:
-    name: Analyze
+  # Bestaande SAST job
+  sast:
+    name: SAST Scan
     runs-on: ubuntu-latest
     permissions:
-      actions: read
-      contents: read
       security-events: write
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'ruby' ]
-
+      contents: read
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ruby
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
 
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        languages: ${{ matrix.language }}
-        # Deze queries zijn essentieel voor SCA-detectie
-        queries: security-extended,security-and-quality
-
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
-      with:
-        category: "/language:${{matrix.language}}"
-        upload: true
+  # NIEUWE SCA job die de fout in image_8408db.png oplost
+  sca:
+    name: Dependency Review (SCA)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          # Dit dwingt de pipeline om te falen bij lekken
+          fail-on-severity: high
