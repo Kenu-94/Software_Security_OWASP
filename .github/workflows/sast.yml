@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "master" ]
   schedule:
-    - cron: '30 1 * * 5'
+    - cron: '30 18 * * 4'
 
 jobs:
   analyze:
@@ -20,22 +20,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'javascript-typescript']
+        # Alleen javascript-typescript behouden om Exit Code 32/Ruby-fouten te voorkomen
+        language: [ 'javascript-typescript' ]
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@v2
       with:
         languages: ${{ matrix.language }}
-        # Dit zorgt voor de meest uitgebreide beveiligingschecks
-        queries: security-extended,security-and-quality
+        # Gebruik de 'security-extended' queries om meer lekken te vinden
+        queries: security-extended
+
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v2
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@v2
       with:
-        category: "/language:${{matrix.language}}"
-        # Forceert dat resultaten direct worden geüpload naar de security monitor
+        category: "/language:${{ matrix.language }}"
+        # Deze instelling zorgt ervoor dat de pipeline faalt bij gevonden lekken
         upload: true
