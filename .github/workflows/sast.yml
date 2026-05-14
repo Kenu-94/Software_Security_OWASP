@@ -22,19 +22,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Deze stap helpt je in de logs te zien of de bestanden er wel zijn
-      - name: List files
+      # Verifieer de locatie van je code in de logs
+      - name: Check directory structure
         run: ls -R
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          # We scannen specifiek Javascript/Typescript voor Juice-Shop
           languages: javascript-typescript
           queries: security-extended
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
-          # Cruciaal: dit zorgt dat de build 'failed' bij bevindingen
           upload: true
