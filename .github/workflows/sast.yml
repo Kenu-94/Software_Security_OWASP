@@ -1,4 +1,4 @@
-name: "CodeQL"
+kname: "CodeQL"
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # We veranderen dit naar ruby omdat je een Gemfile hebt
+        # Geconfigureerd voor de Ruby-bestanden in je repository
         language: [ 'ruby' ]
 
     steps:
@@ -31,11 +31,15 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
+        # Zorgt voor extra controle op de configuratie
+        queries: security-extended,security-and-quality
 
-    # Voor Ruby is GEEN build-stap (autobuild) nodig. 
-    # CodeQL analyseert de scripts direct.
+    # Voor Ruby is geen handmatige build-stap nodig, 
+    # dus de 'autobuild' stap is weggelaten om fouten te voorkomen.
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:${{matrix.language}}"
+        # Forceert de upload van resultaten naar het security tabblad
+        upload: true
