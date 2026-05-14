@@ -20,7 +20,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Geconfigureerd voor de Ruby-bestanden in je repository
         language: [ 'ruby' ]
 
     steps:
@@ -31,15 +30,12 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
-        # Zorgt voor extra controle op de configuratie
+        # Dit zorgt voor de meest uitgebreide beveiligingschecks
         queries: security-extended,security-and-quality
-
-    # Voor Ruby is geen handmatige build-stap nodig, 
-    # dus de 'autobuild' stap is weggelaten om fouten te voorkomen.
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:${{matrix.language}}"
-        # Forceert de upload van resultaten naar het security tabblad
+        # Forceert dat resultaten direct worden geüpload naar de security monitor
         upload: true
