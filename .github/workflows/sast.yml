@@ -20,18 +20,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # Zorg dat de volledige geschiedenis wordt opgehaald
+          # We halen alles op om te voorkomen dat CodeQL bestanden mist
           fetch-depth: 0
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          # Voor Juice-Shop is javascript-typescript de belangrijkste taal
-          languages: javascript-typescript
-          queries: security-and-quality
+          # We voegen 'ruby' weer toe omdat Juice-Shop soms Ruby-gebaseerde tools bevat
+          languages: javascript-typescript, ruby
+          queries: security-extended
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
-          # Forceert build failure bij kwetsbaarheden
+          # Dit is cruciaal om de job te laten falen bij kwetsbaarheden
           upload: true
