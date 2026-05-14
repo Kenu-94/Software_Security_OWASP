@@ -9,7 +9,7 @@ on:
     - cron: '30 1 * * 5'
 
 jobs:
-  # 1. SAST Job: Analyseert de broncode op kwetsbaarheden (Exercise 2)
+  # SAST Job: Moet falen bij kwetsbaarheden voor Exercise 2
   sast:
     name: SAST Scan (CodeQL)
     runs-on: ubuntu-latest
@@ -25,16 +25,16 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ruby
-          # 'security-extended' vindt meer kritieke lekken in Juice-Shop
+          # 'security-extended' zorgt voor een strengere scan
           queries: security-extended
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
-          # upload: true zorgt dat resultaten de build-status beïnvloeden
+          # Forceert de integratie met GitHub's check-status
           upload: true
 
-  # 2. SCA Job: Controleert dependencies op bekende lekken (Exercise 3)
+  # De overige jobs (SCA, Secrets, DAST) blijven ongewijzigd
   sca:
     name: SCA Scan (Dependency Review)
     runs-on: ubuntu-latest
@@ -50,7 +50,6 @@ jobs:
           head-ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fail-on-severity: high
 
-  # 3. Secret Scanning Job: Zoekt naar hardcoded API keys/secrets (Exercise 4)
   secrets:
     name: Secret Scanning (TruffleHog)
     runs-on: ubuntu-latest
@@ -65,22 +64,17 @@ jobs:
           path: ./
           extra_args: --debug --only-verified
 
-  # 4. DAST Job: Scant de draaiende applicatie (Exercise 5)
   dast:
     name: DAST Scan (OWASP ZAP)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Start Juice-Shop
         run: |
           docker run -d -p 3000:3000 --name juice-shop bkimminich/juice-shop
-          # Wacht tot de server bereikbaar is
           timeout 60s sh -c 'until curl -s http://localhost:3000; do sleep 5; done'
-
       - name: Run ZAP Baseline Scan
-        # Zonder '|| [ $? -ne 0 ]' blokkeert dit de build bij alerts[cite: 2]
         run: |
           docker run --network="host" -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
           -t http://localhost:3000/
