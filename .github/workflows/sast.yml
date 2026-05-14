@@ -1,12 +1,12 @@
-name: "SAST Security Scan"
+name: "CodeQL Analysis"
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "main", "master", "develop" ]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [ "main" ]
   schedule:
-    - cron: '0 2 * * 1'
+    - cron: '30 18 * * 4' # Elke donderdag om 18:30
 
 jobs:
   analyze:
@@ -17,19 +17,28 @@ jobs:
       contents: read
       security-events: write
 
+    strategy:
+      fail-fast: false
+      matrix:
+        # Pas hier de taal aan indien nodig (bijv. javascript-typescript)
+        language: [ 'java' ]
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        # Zorgt dat submodules ook worden meegenomen als die er zijn
+        submodules: recursive
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          # We kiezen javascript omdat dit het dichtst bij web-bestanden komt
-          languages: javascript-typescript
+    # Initialiseer CodeQL
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
 
-      # We slaan Autobuild over omdat HTML/JSON niet gebouwd hoeven te worden
-      # We gebruiken de analyze stap direct
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:javascript-typescript"
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
