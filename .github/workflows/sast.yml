@@ -9,6 +9,7 @@ on:
     - cron: '30 1 * * 5'
 
 jobs:
+  # 1. SAST Job: Statische analyse (Exercise 2)
   sast:
     name: SAST Scan (CodeQL)
     runs-on: ubuntu-latest
@@ -19,12 +20,64 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ruby
+          # 'security-extended' vindt meer kwetsbaarheden in Juice-Shop
+          queries: security-extended
+
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+        with:
+          # Dit zorgt ervoor dat de resultaten direct worden geüpload 
+          # en dat de status van de check invloed heeft op de build
+          upload: true
 
-  # De sca, secrets en dast jobs mogen hieronder blijven staan 
-  # als je ze in één bestand hebt gecombineerd.
+  # 2. SCA Job: Dependency scan (Exercise 3)
+  sca:
+    name: SCA Scan (Dependency Review)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          base-ref: ${{ github.event.pull_request.base.sha || github.event.before }}
+          head-ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fail-on-severity: high
+
+  # 3. Secret Scanning Job (Exercise 4)
+  secrets:
+    name: Secret Scanning (TruffleHog)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          extra_args: --debug --only-verified
+
+  # 4. DAST Job (Exercise 5)
+  dast:
+    name: DAST Scan (OWASP ZAP)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Start Juice-Shop
+        run: |
+          docker run -d -p 3000:3000 --name juice-shop bkimminich/juice-shop
+          timeout 60s sh -c 'until curl -s http://localhost:3000; do sleep 5; done'
+      - name: Run ZAP Baseline Scan
+        run: |
+          docker run --network="host" -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+          -t http://localhost:3000/
