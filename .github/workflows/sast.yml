@@ -22,7 +22,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Verifieer de locatie van je code in de logs
+      # Deze stap is cruciaal om te debuggen waarom CodeQL niets ziet
       - name: Check directory structure
         run: ls -R
 
@@ -35,4 +35,5 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
+          # Dit zorgt dat de job rood wordt bij gevonden lekken
           upload: true
