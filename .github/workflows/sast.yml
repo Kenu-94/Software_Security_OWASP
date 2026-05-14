@@ -9,7 +9,7 @@ on:
     - cron: '30 1 * * 5'
 
 jobs:
-  # SAST Job: Scant je eigen Ruby code
+  # SAST Job
   sast:
     name: SAST Scan (CodeQL)
     runs-on: ubuntu-latest
@@ -17,28 +17,17 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'ruby' ]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: ${{ matrix.language }}
-          queries: security-extended,security-and-quality
-
+          languages: ruby
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:${{matrix.language}}"
-          upload: true
 
-  # SCA Job: Scant je libraries (Gemfile.lock)
-  # Deze versie lost de "Both a base ref and head ref" fout op
+  # SCA Job
   sca:
     name: SCA Scan (Dependency Review)
     runs-on: ubuntu-latest
@@ -47,11 +36,26 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
         with:
-          # De onderstaande regels zorgen dat de scan werkt op zowel push als PR
           base-ref: ${{ github.event.pull_request.base.sha || github.event.before }}
           head-ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fail-on-severity: high
+
+  # NIEUWE Secret Scanning Job
+  secrets:
+    name: Secret Scanning (TruffleHog)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Nodig om de hele geschiedenis te scannen
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
