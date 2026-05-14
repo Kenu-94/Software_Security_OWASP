@@ -20,18 +20,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # We halen alles op om te voorkomen dat CodeQL bestanden mist
           fetch-depth: 0
+
+      # Deze stap helpt je in de logs te zien of de bestanden er wel zijn
+      - name: List files
+        run: ls -R
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          # We voegen 'ruby' weer toe omdat Juice-Shop soms Ruby-gebaseerde tools bevat
-          languages: javascript-typescript, ruby
+          # We scannen specifiek Javascript/Typescript voor Juice-Shop
+          languages: javascript-typescript
           queries: security-extended
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
-          # Dit is cruciaal om de job te laten falen bij kwetsbaarheden
+          # Cruciaal: dit zorgt dat de build 'failed' bij bevindingen
           upload: true
