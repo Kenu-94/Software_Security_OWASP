@@ -1,4 +1,4 @@
-name: "CodeQL"
+name: "CodeQL-SCA"
 
 on:
   push:
@@ -30,12 +30,11 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
-        # Dit zorgt voor de meest uitgebreide beveiligingschecks
+        # Deze queries zijn essentieel voor SCA-detectie
         queries: security-extended,security-and-quality
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:${{matrix.language}}"
-        # Forceert dat resultaten direct worden geüpload naar de security monitor
         upload: true
